@@ -1,0 +1,23 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "target": "es2016",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationDir": "./types",
+    "jsx": "react",
+    "sourceMap": true,
+    "baseUrl": ".",
+    "strict": true,
+    "lib": ["ES2015", "ES2016", "DOM", "DOM.Iterable", "ScriptHost"],
+    "paths": {
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "./types/**"
+  ]
+}

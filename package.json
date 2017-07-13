@@ -3,8 +3,11 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "types": "./types/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c",
+    "watch": "rollup -c -w"
   },
   "repository": {
     "type": "git",
@@ -15,5 +18,14 @@
   "bugs": {
     "url": "https://github.com/nramadas/houndstooth/issues"
   },
-  "homepage": "https://github.com/nramadas/houndstooth#readme"
+  "homepage": "https://github.com/nramadas/houndstooth#readme",
+  "devDependencies": {
+    "@types/react": "15.0.22",
+    "rollup": "^0.45.1",
+    "rollup-plugin-typescript2": "^0.4.6",
+    "rollup-watch": "^4.3.1"
+  },
+  "peerDependencies": {
+    "react": "15.6.1"
+  }
 }
