@@ -1,11 +1,13 @@
 export type Listener<S> = (s: S) => void;
 
+export type Unsubscriber = () => void;
+
 export type Channels<S> = { [id: number]: Listener<S> };
 
 export type Bus<S> = { 
   peek: () => S;
   set: (s: S) => void;
-  listen: (l: Listener<S>) => () => void;
+  listen: (l: Listener<S>) => Unsubscriber;
 };
 
 /**

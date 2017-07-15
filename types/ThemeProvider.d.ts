@@ -1,5 +1,6 @@
 /// <reference types="react" />
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Bus } from './createBus';
 import { Maybe } from './';
 export declare type ThemeProviderProps<T> = {
@@ -10,6 +11,9 @@ export default class ThemeProvider<T> extends React.Component<ThemeProviderProps
     bus: Bus<T>;
     context: {
         houndstooth: Maybe<Bus<T>>;
+    };
+    static childContextTypes: {
+        houndstooth: PropTypes.Validator<any>;
     };
     constructor(props: ThemeProviderProps<T>);
     getChildContext(): {
