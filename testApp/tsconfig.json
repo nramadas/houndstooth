@@ -3,14 +3,11 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "target": "es5",
-    "module": "CommonJS",
+    "module": "es2015",
     "moduleResolution": "node",
-    "declaration": true,
-    "declarationDir": "./types",
     "jsx": "react",
-    "sourceMap": true,
+    "allowJs": true,
     "baseUrl": ".",
-    "strict": true,
     "lib": ["ES2015", "ES2016", "DOM", "DOM.Iterable", "ScriptHost"],
     "paths": {
     }
@@ -18,7 +15,7 @@
   "exclude": [
     "node_modules",
     "**/*.spec.ts",
-    "./types/**",
-    "./testApp/**"
+    "./build/**",
+    "./bin/**"
   ]
 }
