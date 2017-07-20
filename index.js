@@ -59,8 +59,6 @@ var makeBus = function (initial) {
     };
 };
 
-//# sourceMappingURL=createBus.js.map
-
 var ThemeProvider = (function (_super) {
     __extends(ThemeProvider, _super);
     function ThemeProvider(props) {
@@ -93,8 +91,6 @@ var ThemeProvider = (function (_super) {
     };
     return ThemeProvider;
 }(React__default.Component));
-
-//# sourceMappingURL=ThemeProvider.js.map
 
 function styled$1(tag) {
     return function (strings) {
@@ -144,8 +140,6 @@ function styled$1(tag) {
         return Styled;
     };
 }
-
-//# sourceMappingURL=index.js.map
 
 exports.ThemeProvider = ThemeProvider;
 exports['default'] = styled$1;
