@@ -1,4 +1,7 @@
 import typescript from 'rollup-plugin-typescript2';
+import inject from 'rollup-plugin-inject';
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
 
 export default {
   entry: './src/index.tsx',
@@ -10,12 +13,19 @@ export default {
   },
   sourceMap: true,
   plugins: [
-    typescript(),
+    typescript({
+      rollupCommonJSResolveHack: true,
+    }),
+    inject({
+      stylis: 'stylis',
+    }),
+    resolve(),
+    commonjs(),
   ],
   external: [
     'react',
     'prop-types',
   ],
   dest: './index.js',
-  format: 'cjs',
+  format: 'umd',
 }

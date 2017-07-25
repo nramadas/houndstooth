@@ -1,7 +1,5 @@
 export type Listener<S> = (s: S) => void;
-
 export type Unsubscriber = () => void;
-
 export type Channels<S> = { [id: number]: Listener<S> };
 
 export type Bus<S> = { 
@@ -13,7 +11,7 @@ export type Bus<S> = {
 /**
  * A simple data bus.
  */
-const makeBus = function<S>(initial: S): Bus<S> {
+export const createBus = function<S>(initial: S): Bus<S> {
   const channels: Channels<S> = {};
   let nextAvailableId = 0;
   let state = initial;
@@ -36,5 +34,3 @@ const makeBus = function<S>(initial: S): Bus<S> {
     },
   };
 };
-
-export default makeBus;

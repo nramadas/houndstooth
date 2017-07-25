@@ -25,7 +25,7 @@ const config = {
 
 const compiler = webpack(config);
 
-compiler.watch({}, (err, stats) => {
+compiler.run((err, stats) => {
   if (err) { throw err; }
   console.log(stats.toString({
     colors: true,

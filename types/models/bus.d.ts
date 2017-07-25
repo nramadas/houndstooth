@@ -11,5 +11,4 @@ export declare type Bus<S> = {
 /**
  * A simple data bus.
  */
-declare const makeBus: <S>(initial: S) => Bus<S>;
-export default makeBus;
+export declare const createBus: <S>(initial: S) => Bus<S>;

@@ -20,21 +20,25 @@
   },
   "homepage": "https://github.com/nramadas/houndstooth#readme",
   "devDependencies": {
+    "@types/lodash": "^4.14.71",
     "@types/prop-types": "^15.5.1",
     "@types/react": "15.0.22",
+    "babel-plugin-syntax-jsx": "^6.18.0",
+    "lodash": "^4.17.4",
     "react": "^15.6.1",
     "rollup": "^0.45.1",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-typescript2": "^0.4.6",
-    "rollup-watch": "^4.3.1"
+    "rollup-plugin-inject": "^2.0.0",
+    "rollup-watch": "^4.3.1",
+    "typescript": "^2.4.2"
   },
   "peerDependencies": {
     "prop-types": "^15.5.10",
     "react": "15.6.1"
   },
   "dependencies": {
-    "babel-plugin-syntax-jsx": "^6.18.0",
-    "lodash": "^4.17.4",
-    "stylis": "^3.2.3",
-    "typescript": "^2.4.2"
+    "stylis": "^3.2.3"
   }
 }

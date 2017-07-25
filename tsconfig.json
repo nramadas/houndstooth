@@ -3,7 +3,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "target": "es5",
-    "module": "CommonJS",
+    "module": "es2015",
     "moduleResolution": "node",
     "declaration": true,
     "declarationDir": "./types",

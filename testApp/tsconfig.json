@@ -9,8 +9,7 @@
     "allowJs": true,
     "baseUrl": ".",
     "lib": ["ES2015", "ES2016", "DOM", "DOM.Iterable", "ScriptHost"],
-    "paths": {
-    }
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",

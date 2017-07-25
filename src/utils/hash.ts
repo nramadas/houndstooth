@@ -1,5 +1,7 @@
 // murmurhash2 via https://gist.github.com/raycmorgan/588423
 // adapted to add types
+const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+
 function UInt32(str: string, pos: number): number {
   return str.charCodeAt(pos++) + (str.charCodeAt(pos++) << 8) + (str.charCodeAt(pos++) << 16) + (str.charCodeAt(pos) << 24);
 }
@@ -17,7 +19,7 @@ function Umul32(n: number, m: number): number {
   return res;
 }
 
-export default function doHash(str: string, seed: number): number {
+export default function doHash(str: string, seed: number = 0): string {
   var m = 0x5bd1e995;
   var r = 24;
   var h = seed ^ str.length;
@@ -60,5 +62,13 @@ export default function doHash(str: string, seed: number): number {
   h = Umul32(h, m);
   h ^= h >>> 15;
 
-  return h >>> 0;
+  var num = h >>> 0;
+  var str = '';
+
+  while (num) {
+    str = '' + chars[num % chars.length] + str;
+    num = Math.floor(num / chars.length);
+  }
+
+  return str;
 }

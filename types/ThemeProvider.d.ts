@@ -1,25 +1,25 @@
 /// <reference types="react" />
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Bus } from './createBus';
+import { Bus } from './models/bus';
 import { Maybe } from './';
-export declare type ThemeProviderProps<T> = {
-    theme: T;
+export declare type ThemeProviderProps = {
+    theme: any;
     children?: React.ReactNode;
 };
-export default class ThemeProvider<T> extends React.Component<ThemeProviderProps<T>, {}> {
-    bus: Bus<T>;
+export default class ThemeProvider extends React.Component<ThemeProviderProps, {}> {
+    bus: Bus<any>;
     context: {
-        houndstooth: Maybe<Bus<T>>;
+        houndstooth: Maybe<Bus<any>>;
     };
     static childContextTypes: {
         houndstooth: PropTypes.Validator<any>;
     };
-    constructor(props: ThemeProviderProps<T>);
+    constructor(props: ThemeProviderProps);
     getChildContext(): {
-        houndstooth: Bus<T>;
+        houndstooth: Bus<any>;
     };
     componentWillMount(): void;
-    componentWillReceiveProps(nextProps: ThemeProviderProps<T>): void;
+    componentWillReceiveProps(nextProps: ThemeProviderProps): void;
     render(): React.ReactElement<any> | null;
 }
