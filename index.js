@@ -76,7 +76,10 @@ var ThemeProvider = (function (_super) {
     }
     ThemeProvider.prototype.getChildContext = function () {
         return {
-            houndstooth: this.bus,
+            houndstooth: {
+                themeBus: this.bus,
+                styleSheet: this.props.styleSheet,
+            },
         };
     };
     ThemeProvider.prototype.componentWillMount = function () {
@@ -97,6 +100,232 @@ var ThemeProvider = (function (_super) {
 }(React__default.Component));
 
 //# sourceMappingURL=ThemeProvider.js.map
+
+var keyToCssRule = function (key) { return key
+    .replace(/([A-Z])/g, '-$1')
+    .toLowerCase()
+    .replace(/^ms-/, '-ms'); };
+var objectToCss = function (obj) {
+    return Object
+        .keys(obj)
+        .map(function (key) {
+        var value = obj[key];
+        if (typeof value === 'object') {
+            return key + " {\n  " + objectToCss(value) + "\n}";
+        }
+        return keyToCssRule(key) + ": " + value + ";";
+    })
+        .join('\n');
+};
+
+//# sourceMappingURL=objectToCss.js.map
+
+// murmurhash2 via https://gist.github.com/raycmorgan/588423
+// adapted to add types
+var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+function UInt32(str, pos) {
+    return str.charCodeAt(pos++) + (str.charCodeAt(pos++) << 8) + (str.charCodeAt(pos++) << 16) + (str.charCodeAt(pos) << 24);
+}
+function UInt16(str, pos) {
+    return str.charCodeAt(pos++) + (str.charCodeAt(pos++) << 8);
+}
+function Umul32(n, m) {
+    n = n | 0;
+    m = m | 0;
+    var nlo = n & 0xffff;
+    var nhi = n >>> 16;
+    var res = nlo * m + ((nhi * m & 0xffff) << 16) | 0;
+    return res;
+}
+function doHash(str, seed) {
+    if (seed === void 0) { seed = 0; }
+    var m = 0x5bd1e995;
+    var r = 24;
+    var h = seed ^ str.length;
+    var length = str.length;
+    var currentIndex = 0;
+    while (length >= 4) {
+        var k = UInt32(str, currentIndex);
+        k = Umul32(k, m);
+        k ^= k >>> r;
+        k = Umul32(k, m);
+        h = Umul32(h, m);
+        h ^= k;
+        currentIndex += 4;
+        length -= 4;
+    }
+    switch (length) {
+        case 3:
+            h ^= UInt16(str, currentIndex);
+            h ^= str.charCodeAt(currentIndex + 2) << 16;
+            h = Umul32(h, m);
+            break;
+        case 2:
+            h ^= UInt16(str, currentIndex);
+            h = Umul32(h, m);
+            break;
+        case 1:
+            h ^= str.charCodeAt(currentIndex);
+            h = Umul32(h, m);
+            break;
+    }
+    h ^= h >>> 13;
+    h = Umul32(h, m);
+    h ^= h >>> 15;
+    var num = h >>> 0;
+    var str = '';
+    while (num) {
+        str = '' + chars[num % chars.length] + str;
+        num = Math.floor(num / chars.length);
+    }
+    return str;
+}
+//# sourceMappingURL=hash.js.map
+
+function isComponentStateless(comp) {
+    return !comp.prototype.render;
+}
+function areStylesStatic(styles) {
+    return typeof styles === 'object';
+}
+function areStylesDynamic(styles) {
+    return typeof styles === 'function';
+}
+var id = 0;
+var COMPONENT_ID_TO_CLASSNAMES = {};
+var styled$1 = function (tag) { return function () {
+    var styles = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        styles[_i] = arguments[_i];
+    }
+    var visited = false;
+    var staticClassNames = [];
+    var dynamicRules = [];
+    return _a = (function (_super) {
+            __extends(Styled, _super);
+            function Styled(props) {
+                var _this = _super.call(this, props) || this;
+                _this.state = {
+                    theme: null
+                };
+                return _this;
+            }
+            Styled.prototype.componentWillMount = function () {
+                if (this.context.houndstooth && this.context.houndstooth.themeBus) {
+                    var theme = this.context.houndstooth.themeBus.peek();
+                    this.setState({
+                        theme: theme,
+                    });
+                }
+            };
+            Styled.prototype.componentDidMount = function () {
+                var _this = this;
+                if (this.context.houndstooth && this.context.houndstooth.themeBus) {
+                    this.cleanUp = this.context.houndstooth.themeBus.listen(function (theme) {
+                        _this.setState({
+                            theme: theme,
+                        });
+                    });
+                }
+            };
+            Styled.prototype.componentWillUnmount = function () {
+                if (this.cleanUp)
+                    this.cleanUp();
+            };
+            Styled.prototype.shouldComponentUpdate = function (nextProps, nextState) {
+                if (nextState.theme !== this.state.theme)
+                    return true;
+                if (nextProps === this.props)
+                    return false;
+                if (Object.keys(nextProps).length !== Object.keys(this.props).length)
+                    return true;
+                for (var key in nextProps) {
+                    if (nextProps[key] !== this.props[key])
+                        return true;
+                }
+                return false;
+            };
+            Styled.prototype.generateClassName = function (theme) {
+                var _this = this;
+                var staticStyles = styles.filter(areStylesStatic);
+                var dynamicStyles = styles.filter(areStylesDynamic);
+                var styleSheet = this.context.houndstooth ? this.context.houndstooth.styleSheet : null;
+                var classNames = [];
+                var inheritingComponentStyles = typeof tag !== 'string'
+                    ? COMPONENT_ID_TO_CLASSNAMES[tag.id]
+                    : null;
+                var after = inheritingComponentStyles
+                    ? inheritingComponentStyles.orderedList[inheritingComponentStyles.orderedList.length - 1]
+                    : undefined;
+                if (visited) {
+                    classNames = classNames.concat(staticClassNames);
+                }
+                else {
+                    visited = true;
+                    staticStyles
+                        .forEach(function (styles) {
+                        var css = objectToCss(styles);
+                        var className = "h-" + doHash(css);
+                        classNames.push(className);
+                        staticClassNames.push(className);
+                        if (!styleSheet)
+                            return;
+                        var rule = styleSheet.inject(className, css, after);
+                        after = rule.className;
+                    });
+                }
+                dynamicStyles
+                    .forEach(function (styles, index) {
+                    var css = objectToCss(styles(__assign({}, _this.props, { theme: theme || {} })));
+                    var className = "h-" + doHash(css);
+                    classNames.push(className);
+                    if (!styleSheet)
+                        return;
+                    if (dynamicRules[index]) {
+                        dynamicRules[index] = styleSheet.replace(dynamicRules[index], className, css);
+                    }
+                    else {
+                        var rule = styleSheet.inject(className, css, after);
+                        after = rule.className;
+                        dynamicRules.push(rule);
+                    }
+                });
+                var uniqueClassNames = inheritingComponentStyles
+                    ? classNames.filter(function (str) { return !inheritingComponentStyles.lookup.has(str); })
+                    : classNames;
+                var totalClassNames = inheritingComponentStyles
+                    ? inheritingComponentStyles.orderedList.concat(uniqueClassNames)
+                    : classNames;
+                COMPONENT_ID_TO_CLASSNAMES[Styled.id] = {
+                    orderedList: uniqueClassNames,
+                    unique: uniqueClassNames,
+                    lookup: new Set(totalClassNames),
+                };
+                return uniqueClassNames;
+            };
+            Styled.prototype.render = function () {
+                var className = this.props.className;
+                var computedClassNames = this.generateClassName(this.state.theme);
+                var classNameSum = computedClassNames.concat(className).join(' ');
+                var baseProps = __assign({}, this.props, { className: classNameSum });
+                if (typeof tag === 'string')
+                    return React.createElement(tag, baseProps);
+                var componentProps = __assign({}, baseProps, { theme: this.state.theme });
+                if (isComponentStateless(tag))
+                    return React.createElement(tag, componentProps);
+                return React.createElement(tag, componentProps);
+            };
+            return Styled;
+        }(React__default.Component)),
+        _a.contextTypes = {
+            houndstooth: PropTypes.object,
+        },
+        _a.id = id++,
+        _a;
+    var _a;
+}; };
+
+//# sourceMappingURL=styled.js.map
 
 function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
@@ -1596,263 +1825,75 @@ var DLLCache = (function () {
 //# sourceMappingURL=DLLCache.js.map
 
 var StyleSheet = (function () {
-    function StyleSheet() {
+    function StyleSheet(args) {
         this.cache = new DLLCache();
+        this.server = !!(args && args.server) || typeof document === 'undefined';
     }
+    StyleSheet.prototype.collectStyles = function () {
+        var styles = [];
+        this.cache.forEach(function (rule) {
+            if (rule.value.type === 'client') {
+                styles.push(rule.value.style.innerHTML);
+            }
+            else {
+                styles.push(rule.value.style);
+            }
+        });
+        return styles.join('\n');
+    };
     StyleSheet.prototype.has = function (className) {
         return !!this.cache.get(className);
     };
     StyleSheet.prototype.inject = function (className, content, after) {
-        var rule = {
-            className: className,
-            content: content,
-            styleTag: document.createElement('style'),
-        };
-        rule.styleTag.innerHTML = stylis("." + rule.className, rule.content);
+        var rule = this.server
+            ? {
+                className: className,
+                content: content,
+                type: 'server',
+                style: '',
+            }
+            : {
+                className: className,
+                content: content,
+                type: 'client',
+                style: document.createElement('style'),
+            };
+        var styleContent = stylis("." + rule.className, rule.content);
+        if (rule.type === 'server') {
+            rule.style = styleContent;
+        }
+        else {
+            rule.style.innerHTML = styleContent;
+        }
         var afterNode = after ? this.cache.get(after) : null;
         if (afterNode) {
             this.cache.appendAfter(afterNode, rule.className, rule);
-            afterNode.value.styleTag.insertAdjacentElement('afterend', rule.styleTag);
+            if (rule.type === 'client' && afterNode.value.type === 'client') {
+                afterNode.value.style.insertAdjacentElement('afterend', rule.style);
+            }
         }
         else {
             this.cache.append(rule.className, rule);
-            document.head.appendChild(rule.styleTag);
+            if (rule.type === 'client') {
+                document.head.appendChild(rule.style);
+            }
         }
         return rule;
     };
     StyleSheet.prototype.replace = function (rule, className, content) {
-        rule.styleTag.innerHTML = stylis("." + className, content);
+        if (rule.type === 'client') {
+            rule.style.innerHTML = stylis("." + className, content);
+        }
         return rule;
     };
     return StyleSheet;
 }());
 
-//# sourceMappingURL=StyleSheet.js.map
-
-var keyToCssRule = function (key) { return key
-    .replace(/([A-Z])/g, '-$1')
-    .toLowerCase()
-    .replace(/^ms-/, '-ms'); };
-var objectToCss = function (obj) {
-    return Object
-        .keys(obj)
-        .map(function (key) {
-        var value = obj[key];
-        if (typeof value === 'object') {
-            return key + " {\n  " + objectToCss(value) + "\n}";
-        }
-        return keyToCssRule(key) + ": " + value + ";";
-    })
-        .join('\n');
-};
-
-//# sourceMappingURL=objectToCss.js.map
-
-// murmurhash2 via https://gist.github.com/raycmorgan/588423
-// adapted to add types
-var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-function UInt32(str, pos) {
-    return str.charCodeAt(pos++) + (str.charCodeAt(pos++) << 8) + (str.charCodeAt(pos++) << 16) + (str.charCodeAt(pos) << 24);
-}
-function UInt16(str, pos) {
-    return str.charCodeAt(pos++) + (str.charCodeAt(pos++) << 8);
-}
-function Umul32(n, m) {
-    n = n | 0;
-    m = m | 0;
-    var nlo = n & 0xffff;
-    var nhi = n >>> 16;
-    var res = nlo * m + ((nhi * m & 0xffff) << 16) | 0;
-    return res;
-}
-function doHash(str, seed) {
-    if (seed === void 0) { seed = 0; }
-    var m = 0x5bd1e995;
-    var r = 24;
-    var h = seed ^ str.length;
-    var length = str.length;
-    var currentIndex = 0;
-    while (length >= 4) {
-        var k = UInt32(str, currentIndex);
-        k = Umul32(k, m);
-        k ^= k >>> r;
-        k = Umul32(k, m);
-        h = Umul32(h, m);
-        h ^= k;
-        currentIndex += 4;
-        length -= 4;
-    }
-    switch (length) {
-        case 3:
-            h ^= UInt16(str, currentIndex);
-            h ^= str.charCodeAt(currentIndex + 2) << 16;
-            h = Umul32(h, m);
-            break;
-        case 2:
-            h ^= UInt16(str, currentIndex);
-            h = Umul32(h, m);
-            break;
-        case 1:
-            h ^= str.charCodeAt(currentIndex);
-            h = Umul32(h, m);
-            break;
-    }
-    h ^= h >>> 13;
-    h = Umul32(h, m);
-    h ^= h >>> 15;
-    var num = h >>> 0;
-    var str = '';
-    while (num) {
-        str = '' + chars[num % chars.length] + str;
-        num = Math.floor(num / chars.length);
-    }
-    return str;
-}
-//# sourceMappingURL=hash.js.map
-
-function isComponentStateless(comp) {
-    return !comp.prototype.render;
-}
-function areStylesStatic(styles) {
-    return typeof styles === 'object';
-}
-function areStylesDynamic(styles) {
-    return typeof styles === 'function';
-}
-var id = 0;
-var COMPONENT_ID_TO_CLASSNAMES = {};
-var STYLE_SHEET = new StyleSheet();
-var styled$1 = function (tag) { return function () {
-    var styles = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        styles[_i] = arguments[_i];
-    }
-    var visited = false;
-    var staticClassNames = [];
-    var dynamicRules = [];
-    return _a = (function (_super) {
-            __extends(Styled, _super);
-            function Styled(props) {
-                var _this = _super.call(this, props) || this;
-                _this.state = {
-                    theme: null
-                };
-                return _this;
-            }
-            Styled.prototype.componentWillMount = function () {
-                if (this.context.houndstooth) {
-                    var theme = this.context.houndstooth.peek();
-                    this.setState({
-                        theme: theme,
-                    });
-                }
-            };
-            Styled.prototype.componentDidMount = function () {
-                var _this = this;
-                if (this.context.houndstooth) {
-                    this.cleanUp = this.context.houndstooth.listen(function (theme) {
-                        _this.setState({
-                            theme: theme,
-                        });
-                    });
-                }
-            };
-            Styled.prototype.componentWillUnmount = function () {
-                if (this.cleanUp)
-                    this.cleanUp();
-            };
-            Styled.prototype.shouldComponentUpdate = function (nextProps, nextState) {
-                if (nextState.theme !== this.state.theme)
-                    return true;
-                if (nextProps === this.props)
-                    return false;
-                if (Object.keys(nextProps).length !== Object.keys(this.props).length)
-                    return true;
-                for (var key in nextProps) {
-                    if (nextProps[key] !== this.props[key])
-                        return true;
-                }
-                return false;
-            };
-            Styled.prototype.generateClassName = function (theme) {
-                var _this = this;
-                var staticStyles = styles.filter(areStylesStatic);
-                var dynamicStyles = styles.filter(areStylesDynamic);
-                var classNames = [];
-                var inheritingComponentStyles = typeof tag !== 'string'
-                    ? COMPONENT_ID_TO_CLASSNAMES[tag.id]
-                    : null;
-                var after = inheritingComponentStyles
-                    ? inheritingComponentStyles.orderedList[inheritingComponentStyles.orderedList.length - 1]
-                    : undefined;
-                if (visited) {
-                    classNames = classNames.concat(staticClassNames);
-                }
-                else {
-                    visited = true;
-                    staticStyles
-                        .forEach(function (styles) {
-                        var css = objectToCss(styles);
-                        var className = "h-" + doHash(css);
-                        classNames.push(className);
-                        staticClassNames.push(className);
-                        var rule = STYLE_SHEET.inject(className, css, after);
-                        after = rule.className;
-                    });
-                }
-                dynamicStyles
-                    .forEach(function (styles, index) {
-                    var css = objectToCss(styles(__assign({}, _this.props, { theme: theme || {} })));
-                    var className = "h-" + doHash(css);
-                    classNames.push(className);
-                    if (dynamicRules[index]) {
-                        dynamicRules[index] = STYLE_SHEET.replace(dynamicRules[index], className, css);
-                    }
-                    else {
-                        var rule = STYLE_SHEET.inject(className, css, after);
-                        after = rule.className;
-                        dynamicRules.push(rule);
-                    }
-                });
-                var uniqueClassNames = inheritingComponentStyles
-                    ? classNames.filter(function (str) { return !inheritingComponentStyles.lookup.has(str); })
-                    : classNames;
-                var totalClassNames = inheritingComponentStyles
-                    ? inheritingComponentStyles.orderedList.concat(uniqueClassNames)
-                    : classNames;
-                COMPONENT_ID_TO_CLASSNAMES[Styled.id] = {
-                    orderedList: uniqueClassNames,
-                    unique: uniqueClassNames,
-                    lookup: new Set(totalClassNames),
-                };
-                return uniqueClassNames;
-            };
-            Styled.prototype.render = function () {
-                var className = this.props.className;
-                var computedClassNames = this.generateClassName(this.state.theme);
-                var classNameSum = computedClassNames.concat(className).join(' ');
-                var baseProps = __assign({}, this.props, { className: classNameSum });
-                if (typeof tag === 'string')
-                    return React.createElement(tag, baseProps);
-                var componentProps = __assign({}, baseProps, { theme: this.state.theme });
-                if (isComponentStateless(tag))
-                    return React.createElement(tag, componentProps);
-                return React.createElement(tag, componentProps);
-            };
-            return Styled;
-        }(React__default.Component)),
-        _a.contextTypes = {
-            houndstooth: PropTypes.object,
-        },
-        _a.id = id++,
-        _a;
-    var _a;
-}; };
-
 //# sourceMappingURL=index.js.map
 
-exports.ThemeProvider = ThemeProvider;
 exports['default'] = styled$1;
+exports.ThemeProvider = ThemeProvider;
+exports.StyleSheet = StyleSheet;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

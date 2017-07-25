@@ -1,8 +1,9 @@
 import ReactDOM from 'react-dom';
 import React from 'react';
 
-import styled, { ThemeProvider } from '../../';
+import styled, { ThemeProvider, StyleSheet } from '../../';
 
+const styleSheet = new StyleSheet({ server: true });
 
 const Title = styled('div')({
   color: 'white',
@@ -65,7 +66,10 @@ class Tester extends React.Component<{}, { opacity: number }> {
   render() {
     console.log(this.state);
     return (
-      <ThemeProvider2 theme={ { opacity: this.state.opacity } }>
+      <ThemeProvider2
+        theme={ { opacity: this.state.opacity } }
+        styleSheet={ styleSheet }
+      >
         <div>
           { Array
             .from({ length: 100 })
@@ -77,7 +81,7 @@ class Tester extends React.Component<{}, { opacity: number }> {
                     .map(() => (
                       <Box2>
                           { Array
-                            .from({ length: 8 })
+                            .from({ length: 4 })
                             .map(() => (
                               <Box3/>
                             )) }
@@ -96,3 +100,5 @@ ReactDOM.render(
   <Tester/>,
   document.getElementById('container')
 );
+
+console.log(styleSheet.collectStyles());

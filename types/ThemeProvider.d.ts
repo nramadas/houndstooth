@@ -1,23 +1,31 @@
 /// <reference types="react" />
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Bus } from './models/bus';
 import { Maybe } from './';
+import { Bus } from './models/bus';
+import StyleSheet from './models/StyleSheet';
 export declare type ThemeProviderProps = {
-    theme: any;
     children?: React.ReactNode;
+    theme: any;
+    styleSheet: StyleSheet;
 };
 export default class ThemeProvider extends React.Component<ThemeProviderProps, {}> {
     bus: Bus<any>;
     context: {
-        houndstooth: Maybe<Bus<any>>;
+        houndstooth: {
+            themeBus: Maybe<Bus<any>>;
+            styleSheet: StyleSheet;
+        };
     };
     static childContextTypes: {
         houndstooth: PropTypes.Validator<any>;
     };
     constructor(props: ThemeProviderProps);
     getChildContext(): {
-        houndstooth: Bus<any>;
+        houndstooth: {
+            themeBus: Bus<any>;
+            styleSheet: StyleSheet;
+        };
     };
     componentWillMount(): void;
     componentWillReceiveProps(nextProps: ThemeProviderProps): void;

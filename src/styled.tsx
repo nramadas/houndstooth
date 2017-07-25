@@ -38,7 +38,6 @@ function areStylesDynamic(styles: StaticStyles | DynamicStyles<any>): styles is 
 
 let id = 0;
 const COMPONENT_ID_TO_CLASSNAMES: { [id: number]: ComponentStylesLookup } = {};
-const STYLE_SHEET = new StyleSheet();
 
 const styled: StyledComponentFactory = tag => (...styles) => {
   let visited = false;
@@ -46,7 +45,12 @@ const styled: StyledComponentFactory = tag => (...styles) => {
   let dynamicRules: CSSRule[] = [];
 
   return class Styled<P, T> extends React.Component<any, ThemeProps<Maybe<T>>> {
-    context: { houndstooth: Maybe<Bus<T>> };
+    context: { 
+      houndstooth: {
+        themeBus: Maybe<Bus<any>>; 
+        styleSheet: StyleSheet;
+      };
+    };
     className: string;
     cleanUp: Maybe<Unsubscriber>;
 
@@ -64,8 +68,8 @@ const styled: StyledComponentFactory = tag => (...styles) => {
     }
 
     componentWillMount() {
-      if (this.context.houndstooth) {
-        const theme = this.context.houndstooth.peek();
+      if (this.context.houndstooth && this.context.houndstooth.themeBus) {
+        const theme = this.context.houndstooth.themeBus.peek();
 
         this.setState({
           theme,
@@ -74,8 +78,8 @@ const styled: StyledComponentFactory = tag => (...styles) => {
     }
 
     componentDidMount() {
-      if (this.context.houndstooth) {
-        this.cleanUp = this.context.houndstooth.listen(theme => {
+      if (this.context.houndstooth && this.context.houndstooth.themeBus) {
+        this.cleanUp = this.context.houndstooth.themeBus.listen(theme => {
           this.setState({
             theme,
           });
@@ -100,6 +104,7 @@ const styled: StyledComponentFactory = tag => (...styles) => {
     generateClassName(theme: Maybe<T>) {
       const staticStyles = styles.filter(areStylesStatic);
       const dynamicStyles = styles.filter(areStylesDynamic);
+      const styleSheet = this.context.houndstooth ? this.context.houndstooth.styleSheet : null;
       let classNames: string[] = [];
 
       let inheritingComponentStyles: Maybe<ComponentStylesLookup> = typeof tag !== 'string'
@@ -122,7 +127,9 @@ const styled: StyledComponentFactory = tag => (...styles) => {
             classNames.push(className);
             staticClassNames.push(className);
 
-            const rule = STYLE_SHEET.inject(className, css, after);
+            if (!styleSheet) return;
+
+            const rule = styleSheet.inject(className, css, after);
             after = rule.className;
           });
       }
@@ -133,10 +140,12 @@ const styled: StyledComponentFactory = tag => (...styles) => {
           const className = `h-${hash(css)}`;
           classNames.push(className);
 
+          if (!styleSheet) return;
+
           if (dynamicRules[index]) {
-            dynamicRules[index] = STYLE_SHEET.replace(dynamicRules[index], className, css);
+            dynamicRules[index] = styleSheet.replace(dynamicRules[index], className, css);
           } else {
-            const rule = STYLE_SHEET.inject(className, css, after);
+            const rule = styleSheet.inject(className, css, after);
             after = rule.className;
             dynamicRules.push(rule);
           }

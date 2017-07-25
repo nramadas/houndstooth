@@ -1,17 +1,24 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { createBus, Bus } from './models/bus';
 import { Maybe } from './';
+import { createBus, Bus } from './models/bus';
+import StyleSheet from './models/StyleSheet';
 
 export type ThemeProviderProps = {
-  theme: any;
   children?: React.ReactNode;
+  theme: any;
+  styleSheet: StyleSheet;
 };
 
 export default class ThemeProvider extends React.Component<ThemeProviderProps, {}> {
   bus: Bus<any>;
-  context: { houndstooth: Maybe<Bus<any>> };
+  context: { 
+    houndstooth: {
+      themeBus: Maybe<Bus<any>>; 
+      styleSheet: StyleSheet;
+    };
+  };
 
   static childContextTypes = {
     houndstooth: PropTypes.object.isRequired,
@@ -24,7 +31,10 @@ export default class ThemeProvider extends React.Component<ThemeProviderProps, {
 
   getChildContext() {
     return {
-      houndstooth: this.bus,
+      houndstooth: {
+        themeBus: this.bus,
+        styleSheet: this.props.styleSheet,
+      },
     };
   }
 
